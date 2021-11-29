@@ -3,6 +3,7 @@ package com.zhouyu.spring;
 import com.zhouyu.spring.service.User;
 import com.zhouyu.spring.service.UserInterface;
 import com.zhouyu.spring.service.UserService;
+import com.zhouyu.spring.service.ZhouyuPointcutAdvisor;
 import org.aopalliance.aop.Advice;
 import org.aopalliance.intercept.MethodInvocation;
 import org.jetbrains.annotations.NotNull;
@@ -138,27 +139,8 @@ public class Test {
 //		proxyFactory.addAdvice(methodInterceptor);
 //		proxyFactory.addAdvice(methodBeforeAdvice);//可以指定多个
 
-		proxyFactory.addAdvisor(new PointcutAdvisor() {
-			@Override
-			public Pointcut getPointcut() {
-				return new StaticMethodMatcherPointcut() {
-					@Override
-					public boolean matches(Method method, Class<?> targetClass) {
-						return method.getName().equals("test");//只有test方法可以走代理逻辑
-					}
-				};
-			}
+		proxyFactory.addAdvisor(new ZhouyuPointcutAdvisor());
 
-			@Override
-			public Advice getAdvice() {//指定代理逻辑
-				return methodInterceptor;
-			}
-
-			@Override
-			public boolean isPerInstance() {
-				return false;
-			}
-		});
 
 		UserService proxy = (UserService) proxyFactory.getProxy();
 		proxy.test();

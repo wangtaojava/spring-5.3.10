@@ -60,6 +60,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 		// 其他情况都会进行JDK动态代理，比如被代理类实现了除SpringProxy接口之外的其他接口
 
 		// 是不是在GraalVM虚拟机上运行
+		// Optimize 默认cglib比jdk的效率高，如果想用cglib就把这个参数设置为true
 		if (!NativeDetector.inNativeImage() &&
 				(config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config))) {
 
@@ -68,6 +69,7 @@ public class DefaultAopProxyFactory implements AopProxyFactory, Serializable {
 				throw new AopConfigException("TargetSource cannot determine target class: " +
 						"Either an interface or a target is required for proxy creation.");
 			}
+			//如果被代理的类还是个接口，或者是不是jdk产生的代理类 就用jdk动态代理
 			if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
 				return new JdkDynamicAopProxy(config);
 			}

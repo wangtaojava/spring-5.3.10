@@ -165,6 +165,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 		boolean setProxyContext = false;
 
 		// 拿到被代理对象
+		// 这里的advised就是ProxyFactory
 		TargetSource targetSource = this.advised.targetSource;
 		Object target = null;
 
@@ -196,7 +197,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			// 如果ProxyFactory的exposeProxy为true,则将代理对象设置到currentProxy这个ThreadLocal中去
 			if (this.advised.exposeProxy) {
 				// Make invocation available if necessary.
-				oldProxy = AopContext.setCurrentProxy(proxy);
+				oldProxy = AopContext.setCurrentProxy(proxy);//从自己的方法中可以获取到此代理对象
 				setProxyContext = true;
 			}
 
@@ -207,7 +208,7 @@ final class JdkDynamicAopProxy implements AopProxy, InvocationHandler, Serializa
 			Class<?> targetClass = (target != null ? target.getClass() : null);
 
 			// Get the interception chain for this method.
-			// 代理对象在执行某个方法时，根据方法筛选出匹配的Advisor,并适配成Interceptor
+			// 重要：代理对象在执行某个方法时，根据方法筛选出匹配的Advisor,并适配成Interceptor
 			List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
 
 			// Check whether we have any advice. If we don't, we can fallback on direct
