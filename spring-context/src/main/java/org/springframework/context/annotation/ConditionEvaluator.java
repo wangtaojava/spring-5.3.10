@@ -100,6 +100,7 @@ class ConditionEvaluator {
 
 		AnnotationAwareOrderComparator.sort(conditions);
 
+		//判断条件注解，是否匹配，只要有一个不匹配则跳过
 		for (Condition condition : conditions) {
 			ConfigurationPhase requiredPhase = null;
 			if (condition instanceof ConfigurationCondition) {

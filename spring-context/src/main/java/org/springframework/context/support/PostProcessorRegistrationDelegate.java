@@ -82,6 +82,7 @@ final class PostProcessorRegistrationDelegate {
 			ConfigurableListableBeanFactory beanFactory, List<BeanFactoryPostProcessor> beanFactoryPostProcessors) {   // BeanFactoryPostProcessor、BeanDefinitionRegistryPostProcessor
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
+		// 用来标记bean是否执行过，执行过的bean加入到set中，防止重复执行
 		Set<String> processedBeans = new HashSet<>();
 
 		if (beanFactory instanceof BeanDefinitionRegistry) {
@@ -108,11 +109,14 @@ final class PostProcessorRegistrationDelegate {
 			// uninitialized to let the bean factory post-processors apply to them!
 			// Separate between BeanDefinitionRegistryPostProcessors that implement
 			// PriorityOrdered, Ordered, and the rest.
+			//添加需要一起执行的FactoryPostProcessor，执行完后会清空再执行下一个
+			//顺序 PriorityOrdered   Ordered
 			List<BeanDefinitionRegistryPostProcessor> currentRegistryProcessors = new ArrayList<>();
 
 			// 执行扫描出来的BeanDefinitionRegistryPostProcessor
 
 			// First, invoke the BeanDefinitionRegistryPostProcessors that implement PriorityOrdered.
+			//先找出实现了PriorityOrdered的对象，进行实例化，排序，执行
 			String[] postProcessorNames =
 					beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
@@ -128,6 +132,7 @@ final class PostProcessorRegistrationDelegate {
 			currentRegistryProcessors.clear();
 
 			// Next, invoke the BeanDefinitionRegistryPostProcessors that implement Ordered.
+			// 再找出所有实现了Ordered的对象，进行实例化，排序，执行
 			postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 			for (String ppName : postProcessorNames) {
 				// processedBeans表示该beanFactoryPostProcessor的postProcessBeanDefinitionRegistry()方法已经执行过了，不再重复执行
@@ -149,6 +154,7 @@ final class PostProcessorRegistrationDelegate {
 			boolean reiterate = true;
 			while (reiterate) {
 				reiterate = false;
+				// 通过类型找beanName，遍历所有的beanDefinitionNames，先从单例池中找（包括三级缓存都找一遍），没有再从beanDefinitionMap中找，在找的过程中需要判断是不是factoryBean
 				postProcessorNames = beanFactory.getBeanNamesForType(BeanDefinitionRegistryPostProcessor.class, true, false);
 				for (String ppName : postProcessorNames) {
 					if (!processedBeans.contains(ppName)) {//没有执行过的再执行
@@ -159,6 +165,7 @@ final class PostProcessorRegistrationDelegate {
 				}
 				sortPostProcessors(currentRegistryProcessors, beanFactory);
 				registryProcessors.addAll(currentRegistryProcessors);
+				//这一步执行方法的时候可能又会注册新的BeanDefinitionRegistryPostProcessor，所以外面需要还有一层循环将新注册的bean执行一遍
 				invokeBeanDefinitionRegistryPostProcessors(currentRegistryProcessors, registry, beanFactory.getApplicationStartup());
 				currentRegistryProcessors.clear();
 			}
